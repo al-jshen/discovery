@@ -2,30 +2,51 @@
 #![no_std]
 
 #[allow(unused_imports)]
-use aux11::{entry, iprint, iprintln};
+use aux11::{entry, iprint, iprintln, usart1};
+
+use core::fmt::Write;
+
+macro_rules! uprint {
+    ( $serial: expr, $($arg: tt)* ) => {
+        $serial.write_fmt(format_args!($($arg)*)).ok()
+
+    };
+}
+
+macro_rules! uprintln {
+    ( $serial: expr, $fmt: expr ) => {
+        uprint!($serial, concat!(fmt, "\n"))
+    };
+    ( $serial:expr, $fmt:expr, $($arg:tt)*) => {
+        uprint!($serial, concat!($fmt, "\n"), $($arg)*)
+    }
+}
+
+struct SerialPort {
+    usart1: &'static mut usart1::RegisterBlock,
+}
+
+impl core::fmt::Write for SerialPort {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        s.bytes().into_iter().for_each(|b| {
+            while self.usart1.isr.read().txe().bit_is_clear() {}
+            self.usart1.tdr.write(|w| w.tdr().bits(b as u16));
+        });
+        Ok(())
+    }
+}
 
 #[entry]
 fn main() -> ! {
     let (usart1, mono_timer, mut itm) = aux11::init();
 
-    let t = mono_timer.now();
+    let mut serial = SerialPort { usart1 };
 
-    // Send a single character
-    b"The quick brown fox jumps over the lazy dog."
-        .iter()
-        .for_each(|&b| {
-            while usart1.isr.read().txe().bit_is_clear() {}
-            usart1.tdr.write(|w| w.tdr().bits(u16::from(b)));
-        });
+    loop {
+        while serial.usart1.isr.read().rxne().bit_is_clear() {}
 
-    let elapsed = t.elapsed();
+        let byte = serial.usart1.rdr.read().rdr().bits() as u8 as char;
 
-    iprintln!(
-        &mut itm.stim[0],
-        "loop took {} ticks ({} us)",
-        elapsed,
-        elapsed as f32 / mono_timer.frequency().0 as f32 * 1e6
-    );
-
-    loop {}
+        uprint!(serial, "{}", byte);
+    }
 }
