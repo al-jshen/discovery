@@ -2,44 +2,42 @@
 #![no_main]
 #![no_std]
 
+#[allow(unused_extern_crates)] //  bug rust-lang/rust#53964
+extern crate panic_itm; // panic handler
+
 #[allow(unused_imports)]
-use aux14::{entry, iprint, iprintln, prelude::*};
+use lsm303agr::*;
 
-// Slave address
-const MAGNETOMETER: u16 = 0b0011_1100;
+use cortex_m::{asm::bkpt, iprint, iprintln};
+use cortex_m_rt::entry;
 
-// Addresses of the magnetometer's registers
-const OUT_X_H_M: u8 = 0x03;
-const IRA_REG_M: u8 = 0x0A;
+use lsm303agr::Lsm303agr;
+use stm32f3_discovery::stm32f3xx_hal::{i2c::I2c, prelude::*, stm32};
 
 #[entry]
 fn main() -> ! {
-    let (i2c1, _delay, mut itm) = aux14::init();
+    let cp = cortex_m::Peripherals::take().unwrap();
+    let mut itm = cp.ITM;
+    let dp = stm32::Peripherals::take().unwrap();
 
-    // Stage 1: Send the address of the register we want to read to the
-    // magnetometer
-    {
-        // TODO Broadcast START
+    let mut flash = dp.FLASH.constrain();
+    let mut rcc = dp.RCC.constrain();
 
-        // TODO Broadcast the MAGNETOMETER address with the R/W bit set to Write
+    let clocks = rcc.cfgr.freeze(&mut flash.acr);
 
-        // TODO Send the address of the register that we want to read: IRA_REG_M
+    let mut gpiob = dp.GPIOB.split(&mut rcc.ahb);
+    let scl = gpiob.pb6.into_af4(&mut gpiob.moder, &mut gpiob.afrl);
+    let sda = gpiob.pb7.into_af4(&mut gpiob.moder, &mut gpiob.afrl);
+
+    let i2c = I2c::new(dp.I2C1, (scl, sda), 400.khz(), clocks, &mut rcc.apb1);
+
+    let mut lsm = Lsm303agr::new_with_i2c(i2c);
+    lsm.init().unwrap();
+    lsm.set_mag_odr(MagOutputDataRate::Hz10).unwrap();
+
+    loop {
+        if lsm.mag_status().unwrap().xyz_new_data {
+            iprintln!(&mut itm.stim[0], "{:?}", lsm.mag_data().unwrap());
+        }
     }
-
-    // Stage 2: Receive the contents of the register we asked for
-    let byte = {
-        // TODO Broadcast RESTART
-
-        // TODO Broadcast the MAGNETOMETER address with the R/W bit set to Read
-
-        // TODO Receive the contents of the register
-
-        // TODO Broadcast STOP
-        0
-    };
-
-    // Expected output: 0x0A - 0b01001000
-    iprintln!(&mut itm.stim[0], "0x{:02X} - 0b{:08b}", IRA_REG_M, byte);
-
-    loop {}
 }
