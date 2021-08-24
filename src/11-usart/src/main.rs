@@ -42,11 +42,27 @@ fn main() -> ! {
 
     let mut serial = SerialPort { usart1 };
 
+    let mut ctr = 0;
+    let mut buffer: [char; 32] = ['0'; 32];
+
     loop {
         while serial.usart1.isr.read().rxne().bit_is_clear() {}
 
-        let byte = serial.usart1.rdr.read().rdr().bits() as u8 as char;
-
-        uprint!(serial, "{}", byte);
+        let byte = serial.usart1.rdr.read().rdr().bits();
+        if byte != 13 {
+            if ctr < 32 {
+                let c = byte as u8 as char;
+                uprint!(serial, "{}", c);
+                buffer[ctr] = c;
+                ctr += 1;
+            }
+        } else {
+            uprint!(serial, "\n");
+            for i in buffer[..ctr].iter().rev() {
+                uprint!(serial, "{}", i);
+            }
+            uprint!(serial, "\n");
+            ctr = 0;
+        }
     }
 }
