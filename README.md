@@ -1,23 +1,22 @@
 # `Discovery`
 
-asdfasdfasdfasdf
 Discover the world of microcontrollers through
 [Rust](https://www.rust-lang.org/):
 
 - Read this book on-line at https://docs.rust-embedded.org/discovery/
 - Start working on the examples from this repository
 - You've got questions?
-  - Have a look at our [discussions section on
-    GitHub](https://github.com/rust-embedded/discovery/discussions)
-  - Maybe it has already been answered
-  - If not, start a new discussion
+    - Have a look at our [discussions section on
+      GitHub](https://github.com/rust-embedded/discovery/discussions)
+    - Maybe it has already been answered
+    - If not, start a new discussion
 - You've found an issue?
-  - Have a look at our [issues on
-    GitHub](https://github.com/rust-embedded/discovery/issues)
-  - Maybe there is already a workaround
-  - If not, please open a new one - or even better - a [pull
-    request](https://github.com/rust-embedded/discovery/pulls) for solving
-    it
+    - Have a look at our [issues on
+      GitHub](https://github.com/rust-embedded/discovery/issues)
+    - Maybe there is already a workaround
+    - If not, please open a new one - or even better - a [pull
+      request](https://github.com/rust-embedded/discovery/pulls) for solving
+      it
 - Have fun and enjoy!
 
 This project is developed and maintained by the [Resources team][team].
@@ -48,8 +47,8 @@ licensed as above, without any additional terms or conditions.
 ## Code of Conduct
 
 Contribution to this crate is organized under the terms of the [Rust Code of
-Conduct][coc], the maintainer of this crate, the [Resources team][team], promises
+Conduct][CoC], the maintainer of this crate, the [Resources team][team], promises
 to intervene to uphold that code of conduct.
 
-[coc]: CODE_OF_CONDUCT.md
+[CoC]: CODE_OF_CONDUCT.md
 [team]: https://github.com/rust-embedded/wg#the-resources-team
