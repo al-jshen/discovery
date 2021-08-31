@@ -9,7 +9,7 @@ aux14 = { path = "auxiliary" }
 lsm303agr = "0.1"
 embedded-hal = "0.2"
 cortex-m = "0.6.3"
-cortex-m-rt = "0.6.3"
+cortex-m-rt = { version = "0.6.3", features = ["device"] }
 panic-itm = "0.4.0"
 stm32f3-discovery = "0.6.0"
 
